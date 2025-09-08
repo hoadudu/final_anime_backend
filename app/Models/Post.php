@@ -10,6 +10,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Models\PostCharacter;
 use App\Models\Character;
 use App\Models\Episode;
+use App\Models\Comment;
 
 /**
  * @mixin IdeHelperPost
@@ -46,7 +47,75 @@ class Post extends Model implements HasMedia
         'external' => 'array',
     ];
 
-    
+    /**
+     * Boot the model to auto-sync title from primary title
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saving(function ($post) {
+            // Auto-set title from primary title if not set
+            if (!$post->title && $post->exists) {
+                $post->title = $post->getPrimaryTitleFromRelation();
+            }
+        });
+    }
+
+    /**
+     * Get primary title from titles relationship
+     */
+    public function getPrimaryTitleFromRelation(): ?string
+    {
+        $primaryTitle = $this->titles()
+            ->where('is_primary', true)
+            ->first();
+            
+        if ($primaryTitle) {
+            return $primaryTitle->title;
+        }
+        
+        // Fallback to first title if no primary
+        $firstTitle = $this->titles()->first();
+        return $firstTitle?->title;
+    }
+
+    /**
+     * Get display title (for backwards compatibility)
+     * Returns the main title field directly
+     */
+    /**
+     * Get display title (for backwards compatibility)
+     * Returns the main title field directly
+     */
+    public function getDisplayTitleAttribute(): ?string
+    {
+        return $this->title ?? $this->getPrimaryTitleFromRelation();
+    }
+
+    /**
+     * Get all comments for this post.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Get visible comments for this post.
+     */
+    public function visibleComments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->visible();
+    }
+
+    /**
+     * Get comments count for this post.
+     */
+    public function getCommentsCountAttribute(): int
+    {
+        return $this->visibleComments()->count();
+    }
 
     /**
      * Get all titles for this post.
@@ -358,19 +427,6 @@ class Post extends Model implements HasMedia
         }
     }
 
-
-    /**
-     * Get the display title based on priority.
-     */
-    public function getDisplayTitleAttribute()
-    {
-        $titles = $this->titles ?? collect();
-        $primary = $titles->firstWhere('is_primary', 1)?->title;
-        $vi = $titles->firstWhere('language', 'vi')?->title;
-        $en = $titles->firstWhere('language', 'en')?->title;
-        $first = $titles->first()?->title;
-        return $primary ?? $vi ?? $en ?? $first ?? '';
-    }
 
     /**
      * Model Post implement HasMedia interface

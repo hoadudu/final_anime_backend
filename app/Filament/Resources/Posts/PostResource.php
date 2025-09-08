@@ -49,7 +49,7 @@ class PostResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['titles', 'images', 'postProducers.producer']);
+            ->with(['images', 'postProducers.producer']);
     }
 
     public static function getPages(): array

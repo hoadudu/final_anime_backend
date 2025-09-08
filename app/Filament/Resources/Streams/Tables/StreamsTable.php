@@ -21,7 +21,7 @@ class StreamsTable
                 TextColumn::make('episode.episode_number')
                     ->label('Episode #')
                     ->formatStateUsing(fn ($state, $record) => 
-                        "Ep. {$state} - " . ($record->episode?->post?->display_title ?? 'Unknown Anime')
+                        "Ep. {$state} - " . ($record->episode?->post?->title ?? 'Unknown Anime')
                     )
                     ->searchable()
                     ->sortable(),
@@ -68,10 +68,10 @@ class StreamsTable
                             ->label('Episode')
                             ->placeholder('Select an episode...')
                             ->options(function () {
-                                return \App\Models\Episode::with('post.titles')
+                                return \App\Models\Episode::with('post')
                                     ->get()
                                     ->mapWithKeys(function ($episode) {
-                                        $postTitle = $episode->post?->display_title ?? 'Unknown Anime';
+                                        $postTitle = $episode->post?->title ?? 'Unknown Anime';
                                         $episodeLabel = "Ep. {$episode->episode_number} - {$postTitle}";
                                         return [$episode->id => $episodeLabel];
                                     })
@@ -96,9 +96,9 @@ class StreamsTable
                         $indicators = [];
                         
                         if ($data['episode_id'] ?? null) {
-                            $episode = \App\Models\Episode::with('post.titles')->find($data['episode_id']);
+                            $episode = \App\Models\Episode::with('post')->find($data['episode_id']);
                             if ($episode) {
-                                $postTitle = $episode->post?->display_title ?? 'Unknown Anime';
+                                $postTitle = $episode->post?->title ?? 'Unknown Anime';
                                 $indicators['episode_id'] = "Episode: Ep. {$episode->episode_number} - {$postTitle}";
                             }
                         }

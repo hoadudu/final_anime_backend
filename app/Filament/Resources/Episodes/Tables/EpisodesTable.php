@@ -28,9 +28,10 @@ class EpisodesTable
     {
         return $table
             ->columns([
-                TextColumn::make('post.id')
-                    ->formatStateUsing(fn ($state, $record) => $record->post?->display_title ?: "Post #{$state}")
-                    ->label('Anime Title'),
+                TextColumn::make('post.title')
+                    ->label('Anime Title')
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('episode_number')
                     ->numeric()
                     ->sortable(),

@@ -22,8 +22,10 @@ class PostsTable
                 TextColumn::make('mal_id')
                     ->copyable()
                     ->sortable(),
-                TextColumn::make('display_title')
-                    ->label('Tiêu Đề'),
+                TextColumn::make('title')
+                    ->label('Tiêu Đề')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('titles.title')
                     ->label('Tìm theo tiêu đề phụ')
                     ->searchable()

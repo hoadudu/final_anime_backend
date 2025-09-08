@@ -7,6 +7,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 class User extends Authenticatable 
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable; 
+    use HasFactory, Notifiable, HasApiTokens; 
     // use SoftDeletes;
     
 
@@ -53,6 +54,37 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get the anime lists for the user.
+     */
+    public function animeLists()
+    {
+        return $this->hasMany(UserAnimeList::class);
+    }
+
+    /**
+     * Get the default anime list for the user.
+     */
+    public function defaultAnimeList()
+    {
+        return $this->hasOne(UserAnimeList::class)->where('is_default', true);
+    }
+
+    /**
+     * Get or create the default anime list for the user.
+     */
+    public function getOrCreateDefaultAnimeList(): UserAnimeList
+    {
+        return $this->defaultAnimeList()->firstOrCreate([
+            'user_id' => $this->id,
+            'is_default' => true,
+        ], [
+            'name' => 'My List',
+            'type' => 'default',
+            'visibility' => 'private',
+        ]);
     }
 
     public function canAccessFilament(): bool
