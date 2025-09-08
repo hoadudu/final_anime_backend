@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\UserAnimeListController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\CommentReportController;
+use App\Http\Controllers\Api\SubtitleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,4 +43,24 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Comment reports
     Route::post('/comments/{comment}/report', [CommentReportController::class, 'store']);
+});
+
+// Subtitle routes (public access)
+Route::prefix('subtitles')->name('api.subtitles.')->group(function () {
+    Route::get('/{subtitle}/serve', [SubtitleController::class, 'serve'])->name('serve');
+    Route::get('/{subtitle}/download', [SubtitleController::class, 'download'])->name('download');
+    Route::get('/{subtitle}/stream', [SubtitleController::class, 'stream'])->name('stream');
+    Route::get('/{subtitle}/info', [SubtitleController::class, 'info'])->name('info');
+});
+
+// Stream subtitle routes (public access)
+Route::prefix('streams')->group(function () {
+    Route::get('/{stream}/subtitles', [SubtitleController::class, 'getStreamSubtitles']);
+    Route::get('/{stream}/subtitles/languages', [SubtitleController::class, 'getLanguages']);
+    Route::get('/{stream}/subtitles/default', [SubtitleController::class, 'getDefault']);
+});
+
+// Admin subtitle management (authenticated)
+Route::middleware('auth:sanctum')->prefix('admin/subtitles')->group(function () {
+    Route::post('/{subtitle}/clear-cache', [SubtitleController::class, 'clearCache']);
 });

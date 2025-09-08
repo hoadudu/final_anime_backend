@@ -175,7 +175,7 @@ class Post extends Model implements HasMedia
     /**
      * Get all episodes for this post.
      */
-    public function episodes(): HasMany
+    public function episodeList(): HasMany
     {
         return $this->hasMany(Episode::class, 'post_id', 'id');
     }

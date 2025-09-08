@@ -40,7 +40,7 @@ class PostsTable
                     ->numeric()
                     ->sortable()
                     ->getStateUsing(function ($record) {
-                        return $record->episodes()->count();
+                        return $record->episodeList()->count();
                     })
                     ->url(function ($record) {
                         return URL::route('filament.admin.resources.episodes.index', [

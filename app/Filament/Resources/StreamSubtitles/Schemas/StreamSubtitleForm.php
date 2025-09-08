@@ -7,11 +7,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Get;
 use Filament\Schemas\Components\Group;
-
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use App\Models\Stream;
+use App\Models\Post;
 
 class StreamSubtitleForm
 {
@@ -104,6 +106,40 @@ class StreamSubtitleForm
                                     ->required(),
                             ])
                             ->columns(2),
+                    ]),
+                
+                Section::make('File Upload')
+                    ->description('Upload subtitle file or provide external URL')
+                    ->schema([
+                        FileUpload::make('subtitle_file')
+                            ->label('Upload Subtitle File')
+                            ->acceptedFileTypes(['application/x-subrip', 'text/vtt', 'text/x-ssa', '.srt', '.vtt', '.ass', '.ssa', '.txt'])
+                            ->disk('local')
+                            ->directory(function (Get $get) {
+                                $streamId = $get('stream_id');
+                                if ($streamId) {
+                                    $stream = Stream::find($streamId);
+                                    $episode = $stream?->episode;
+                                    $post = $episode?->post;
+                                    if ($post) {
+                                        return "subtitles/{$post->id}_{$post->slug}";
+                                    }
+                                }
+                                return 'subtitles/temp';
+                            })
+                            ->storeFileNamesIn('original_filename')
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set) {
+                                if ($state) {
+                                    // Auto-fill URL when file is uploaded
+                                    $set('url', $state);
+                                    
+                                    // Auto-detect type from extension
+                                    $extension = pathinfo($state, PATHINFO_EXTENSION);
+                                    $set('type', strtolower($extension));
+                                }
+                            })
+                            ->helperText('Supported formats: SRT, VTT, ASS, SSA, TXT'),
                     ]),
                 
                 Section::make('URL & Settings')

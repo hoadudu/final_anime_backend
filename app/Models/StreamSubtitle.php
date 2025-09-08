@@ -89,7 +89,7 @@ class StreamSubtitle extends Model
         return $this->meta['fps'] ?? 23.976;
     }
 
-    // Boot method for automatic language_name setting
+    // Boot method for automatic language_name setting and cleanup
     protected static function boot()
     {
         parent::boot();
@@ -104,6 +104,18 @@ class StreamSubtitle extends Model
             if ($subtitle->isDirty('language') && empty($subtitle->language_name)) {
                 $subtitle->language_name = static::getLanguageName($subtitle->language);
             }
+        });
+
+        static::deleting(function ($subtitle) {
+            // Clean up local files when subtitle is deleted
+            $uploadService = app(\App\Services\SubtitleUploadService::class);
+            if ($uploadService->isLocalFile($subtitle->url)) {
+                $uploadService->deleteSubtitleFile($subtitle);
+            }
+            
+            // Clear cache
+            $accessService = app(\App\Services\SubtitleAccessService::class);
+            $accessService->clearCache($subtitle);
         });
     }
 
