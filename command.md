@@ -1,0 +1,1 @@
+php artisan migrate:generate --tables="anime_posts,anime_post_images,anime_post_titles,anime_post_videos,anime_post_morphables"
