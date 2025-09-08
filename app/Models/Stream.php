@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 
 class Stream extends Model
@@ -44,6 +45,30 @@ class Stream extends Model
     public function episode(): BelongsTo
     {
         return $this->belongsTo(Episode::class, 'episode_id', 'id');
+    }
+
+    /**
+     * Get all subtitles for this stream.
+     */
+    public function subtitles(): HasMany
+    {
+        return $this->hasMany(StreamSubtitle::class);
+    }
+
+    /**
+     * Get only active subtitles for this stream.
+     */
+    public function activeSubtitles(): HasMany
+    {
+        return $this->hasMany(StreamSubtitle::class)->active()->ordered();
+    }
+
+    /**
+     * Get default subtitle for this stream.
+     */
+    public function defaultSubtitle()
+    {
+        return $this->subtitles()->default()->active()->first();
     }
 
     /**
@@ -154,5 +179,41 @@ class Stream extends Model
     public function getHeaders(): array
     {
         return $this->meta['headers'] ?? [];
+    }
+
+    /**
+     * Get subtitles by language
+     */
+    public function getSubtitlesByLanguage(string $language)
+    {
+        return $this->subtitles()->language($language)->active()->ordered()->get();
+    }
+
+    /**
+     * Get available subtitle languages
+     */
+    public function getSubtitleLanguages(): array
+    {
+        return $this->subtitles()
+            ->active()
+            ->distinct('language')
+            ->pluck('language')
+            ->toArray();
+    }
+
+    /**
+     * Check if stream has subtitles
+     */
+    public function hasSubtitles(): bool
+    {
+        return $this->subtitles()->active()->exists();
+    }
+
+    /**
+     * Check if stream has subtitles for specific language
+     */
+    public function hasSubtitlesForLanguage(string $language): bool
+    {
+        return $this->subtitles()->language($language)->active()->exists();
     }
 }
