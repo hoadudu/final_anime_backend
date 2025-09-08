@@ -19,6 +19,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Tables\Filters\Filter as BaseFilter;
+use Illuminate\Support\Facades\URL;
 
 
 class EpisodesTable
@@ -42,6 +43,22 @@ class EpisodesTable
                     ->date()
                     ->sortable(),
                 TextColumn::make('type'),
+                TextColumn::make('streams_count')
+                    ->label('Streams')
+                    ->getStateUsing(function ($record) {
+                        return $record->streams()->count();
+                    })
+                    ->url(function ($record) {
+                        return URL::route('filament.admin.resources.streams.index', [
+                            'tableFilters[episode_filter][episode_id]' => $record->id,
+                        ]);
+                    })
+                    ->openUrlInNewTab(false)
+                    ->color('primary')
+                    ->icon('heroicon-o-play-circle')
+                    ->iconPosition('before')
+                    ->numeric()
+                    ->sortable(false),
                 TextColumn::make('group')
                     ->numeric()
                     ->sortable(),

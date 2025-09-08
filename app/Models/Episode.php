@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Episode extends Model
 {
@@ -45,6 +46,22 @@ class Episode extends Model
     public function post(): BelongsTo
     {
         return $this->belongsTo(Post::class, 'post_id', 'id');
+    }
+
+    /**
+     * Get all streams for this episode.
+     */
+    public function streams(): HasMany
+    {
+        return $this->hasMany(Stream::class, 'episode_id', 'id');
+    }
+
+    /**
+     * Get active streams for this episode.
+     */
+    public function activeStreams(): HasMany
+    {
+        return $this->streams()->where('is_active', true)->ordered();
     }
 
     /**
