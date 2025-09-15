@@ -2,15 +2,18 @@
 
 namespace App\Filament\Resources\StreamSubtitles\Tables;
 
+use App\Models\Stream;
+use Filament\Tables\Table;
+use Filament\Actions\EditAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\BaseFilter;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TernaryFilter;
-use Filament\Tables\Table;
 
 class StreamSubtitlesTable
 {
@@ -95,46 +98,32 @@ class StreamSubtitlesTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            // select filter for stream_id with default from URL parameter
+            // stream()->  episode()->post()->title
             ->filters([
-                SelectFilter::make('language')
-                    ->label('Language')
-                    ->options([
-                        'vi' => 'Vietnamese',
-                        'en' => 'English',
-                        'ja' => 'Japanese',
-                        'ko' => 'Korean',
-                        'zh' => 'Chinese',
-                        'th' => 'Thai',
-                    ])
-                    ->multiple(),
-                    
-                SelectFilter::make('type')
-                    ->label('Format')
-                    ->options([
-                        'srt' => 'SRT',
-                        'vtt' => 'VTT',
-                        'ass' => 'ASS',
-                        'ssa' => 'SSA',
-                        'txt' => 'TXT',
-                    ])
-                    ->multiple(),
-                    
-                SelectFilter::make('source')
-                    ->label('Source')
-                    ->options([
-                        'manual' => 'Manual',
-                        'auto' => 'Auto Generated',
-                        'community' => 'Community',
-                        'official' => 'Official',
-                    ])
-                    ->multiple(),
-                    
-                TernaryFilter::make('is_default')
-                    ->label('Is Default'),
-                    
-                TernaryFilter::make('is_active')
-                    ->label('Is Active'),
-            ])
+    SelectFilter::make('stream_id')
+        ->label('Stream')
+        ->default(function () {
+            $filters = request()->get('tableFilters', []);
+            return $filters['stream_id']['value'] ?? null; // chú ý: trong URL phải là [value]
+        })
+        ->options(function () {
+            return Stream::with('episode.post')
+                ->get()
+                ->mapWithKeys(function ($stream) {
+                    $episodeTitle = $stream->episode?->number ?? 'Unknown Episode';
+                    $postTitle    = $stream->episode?->post?->title ?? 'Unknown Anime';
+
+                    $label = "{$stream->display_name} ({$stream->server_name}) - {$episodeTitle} / {$postTitle}";
+
+                    return [$stream->id => $label];
+                })
+                ->sortBy(fn ($label) => $label) // sort theo label, giữ nguyên key
+                ->toArray();
+        })
+        ->searchable(),
+])
+
             ->recordActions([
                 EditAction::make(),
             ])

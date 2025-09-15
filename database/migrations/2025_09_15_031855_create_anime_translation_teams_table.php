@@ -11,7 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::dropIfExists('stream_subtitles');
+        Schema::create('anime_translation_teams', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->string('name', 200);
+            $table->string('home', 200)->nullable();
+            $table->string('logo', 200)->nullable();
+        });
     }
 
     /**
@@ -19,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // This will be handled by the create migration
+        Schema::dropIfExists('anime_translation_teams');
     }
 };

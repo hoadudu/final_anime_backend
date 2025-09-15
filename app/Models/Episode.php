@@ -16,7 +16,7 @@ class Episode extends Model
     protected $fillable = [
         'post_id',
         'titles',
-        'episode_number',
+        'number',
         'absolute_number',
         'thumbnail',
         'release_date',
@@ -24,6 +24,10 @@ class Episode extends Model
         'type',
         'group',
         'sort_number',
+        'episode_film',
+        'episode_id',
+        'episode_type',
+        'episode_subtitles'
     ];
 
     protected $casts = [

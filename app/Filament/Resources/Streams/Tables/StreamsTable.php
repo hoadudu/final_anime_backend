@@ -2,14 +2,17 @@
 
 namespace App\Filament\Resources\Streams\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Table;
 use Filament\Actions\EditAction;
+use Illuminate\Support\Facades\DB;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\URL;
+use Filament\Support\Icons\Heroicon;
+use Filament\Actions\BulkActionGroup;
+use Filament\Forms\Components\Select;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\Select;
 use Illuminate\Database\Eloquent\Builder;
 
 class StreamsTable
@@ -25,6 +28,23 @@ class StreamsTable
                     )
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('subtitles_count')
+                    ->label('Subtitles')
+                    ->getStateUsing(function ($record) {
+                        return $record->subtitles()->count();
+                    })
+                    ->badge()
+                    ->color('success')
+                    ->url(function ($record) {
+                        if (!$record) return null;
+                        
+                        return URL::route('filament.admin.resources.stream-subtitles.index', [
+                            'tableFilters[stream_id]' => $record->id,
+                        ]);
+                    })
+                    ->openUrlInNewTab(false)
+                    ->tooltip('Click to view subtitles for this stream')
+                      ->icon(Heroicon::CursorArrowRays),
                 TextColumn::make('server_name')
                     ->searchable()
                     ->sortable(),

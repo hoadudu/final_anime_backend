@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Models\PostCharacter;
@@ -26,6 +28,7 @@ class Post extends Model implements HasMedia
         'mal_id',
         'title',
         'slug',
+        'subtitle_directory',
         'type',
         'source',
         'episodes',
@@ -40,7 +43,18 @@ class Post extends Model implements HasMedia
         'season',
         'broadcast',
         'external',
-        'approved'
+        'approved',
+        'film_id',
+        'facebook_comment',
+        'film_tag',
+        'film_viewed',
+        'film_year',
+        'film_country',
+        'film_lb',
+        'film_type',
+
+            
+
     ];
 
     protected $casts = [        
@@ -48,11 +62,55 @@ class Post extends Model implements HasMedia
     ];
 
     /**
-     * Boot the model to auto-sync title from primary title
+     * Boot the model to auto-sync title from primary title and handle subtitle directory
      */
     protected static function boot()
     {
         parent::boot();
+        
+        static::created(function ($post) {
+            // Set subtitle directory after creating (when ID is available)
+            if (empty($post->subtitle_directory)) {
+                $post->update([
+                    'subtitle_directory' => "subtitles/{$post->id}_{$post->slug}"
+                ]);
+            }
+        });
+
+        static::updating(function ($post) {
+            // Handle slug changes - move files automatically
+            if ($post->isDirty('slug') && !$post->isDirty('subtitle_directory')) {
+                $oldDirectory = $post->getOriginal('subtitle_directory') ?? "subtitles/{$post->id}_{$post->getOriginal('slug')}";
+                $newDirectory = "subtitles/{$post->id}_{$post->slug}";
+                
+                // Move directory if it exists and new directory doesn't exist
+                if (Storage::disk('public')->exists($oldDirectory) && 
+                    !Storage::disk('public')->exists($newDirectory)) {
+                    
+                    try {
+                        // Create parent directory if needed
+                        Storage::disk('public')->makeDirectory(dirname($newDirectory));
+                        
+                        // Move the entire directory
+                        $files = Storage::disk('public')->allFiles($oldDirectory);
+                        foreach ($files as $file) {
+                            $newFile = str_replace($oldDirectory, $newDirectory, $file);
+                            Storage::disk('public')->move($file, $newFile);
+                        }
+                        
+                        // Remove old directory if empty
+                        if (empty(Storage::disk('public')->allFiles($oldDirectory))) {
+                            Storage::disk('public')->deleteDirectory($oldDirectory);
+                        }
+                        
+                    } catch (\Exception $e) {
+                        Log::error("Failed to move subtitle directory for post {$post->id}: " . $e->getMessage());
+                    }
+                }
+                
+                $post->subtitle_directory = $newDirectory;
+            }
+        });
         
         static::saving(function ($post) {
             // Auto-set title from primary title if not set
@@ -427,6 +485,25 @@ class Post extends Model implements HasMedia
         }
     }
 
+
+    /**
+     * Get subtitle directory for this post
+     */
+    public function getSubtitleDirectory(): string
+    {
+        return $this->subtitle_directory ?? "subtitles/{$this->id}_{$this->slug}";
+    }
+
+    /**
+     * Ensure subtitle directory exists
+     */
+    public function ensureSubtitleDirectoryExists(): void
+    {
+        $directory = $this->getSubtitleDirectory();
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory);
+        }
+    }
 
     /**
      * Model Post implement HasMedia interface

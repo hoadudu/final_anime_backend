@@ -113,6 +113,25 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'anime47backup' => [
+            'driver' => 'mysql',
+            'host' => env('ANIME47BACKUP_DB_HOST', '127.0.0.1'),
+            'port' => env('ANIME47BACKUP_DB_PORT', '3306'),
+            'database' => env('ANIME47BACKUP_DB_DATABASE', 'anime47backup'),
+            'username' => env('ANIME47BACKUP_DB_USERNAME', 'anime47backup'),
+            'password' => env('ANIME47BACKUP_DB_PASSWORD', '12345678'),
+            'unix_socket' => env('ANIME47BACKUP_DB_SOCKET', ''),
+            'charset' => env('ANIME47BACKUP_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('ANIME47BACKUP_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('ANIME47BACKUP_MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
     ],
 
     /*

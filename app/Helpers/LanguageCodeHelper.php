@@ -191,4 +191,79 @@ class LanguageCodeHelper
         'za' => 'Zhuang, Chuang',
         'zu' => 'Zulu'
     ];
+
+    /**
+     * Detect language code from filename
+     * Supports patterns like: .vi., .vie., .viet., .english., etc.
+     */
+    public static function detectFromFilename(string $filename): ?string
+    {
+        $patterns = [
+            'vi' => '/[._-](vi|vie|viet|vietnamese)[._-]/i',
+            'en' => '/[._-](en|eng|english)[._-]/i',
+            'ja' => '/[._-](ja|jp|jap|japanese)[._-]/i',
+            'ko' => '/[._-](ko|kor|korean)[._-]/i',
+            'zh' => '/[._-](zh|cn|chinese|中文)[._-]/i',
+            'th' => '/[._-](th|thai)[._-]/i',
+            'fr' => '/[._-](fr|fre|french)[._-]/i',
+            'de' => '/[._-](de|ger|german)[._-]/i',
+            'es' => '/[._-](es|spa|spanish)[._-]/i',
+            'pt' => '/[._-](pt|por|portuguese)[._-]/i',
+            'ru' => '/[._-](ru|rus|russian)[._-]/i',
+            'ar' => '/[._-](ar|ara|arabic)[._-]/i',
+            'it' => '/[._-](it|ita|italian)[._-]/i',
+            'nl' => '/[._-](nl|dut|dutch)[._-]/i',
+            'sv' => '/[._-](sv|swe|swedish)[._-]/i',
+            'no' => '/[._-](no|nor|norwegian)[._-]/i',
+            'da' => '/[._-](da|dan|danish)[._-]/i',
+            'fi' => '/[._-](fi|fin|finnish)[._-]/i',
+            'pl' => '/[._-](pl|pol|polish)[._-]/i',
+            'cs' => '/[._-](cs|cze|czech)[._-]/i',
+            'hu' => '/[._-](hu|hun|hungarian)[._-]/i',
+            'tr' => '/[._-](tr|tur|turkish)[._-]/i',
+            'he' => '/[._-](he|heb|hebrew)[._-]/i',
+            'hi' => '/[._-](hi|hin|hindi)[._-]/i',
+            'bn' => '/[._-](bn|ben|bengali)[._-]/i',
+            'ta' => '/[._-](ta|tam|tamil)[._-]/i',
+            'te' => '/[._-](te|tel|telugu)[._-]/i',
+            'kn' => '/[._-](kn|kan|kannada)[._-]/i',
+            'ml' => '/[._-](ml|mal|malayalam)[._-]/i',
+            'si' => '/[._-](si|sin|sinhala)[._-]/i',
+            'ur' => '/[._-](ur|urd|urdu)[._-]/i',
+            'fa' => '/[._-](fa|per|persian)[._-]/i',
+            'id' => '/[._-](id|ind|indonesian)[._-]/i',
+            'ms' => '/[._-](ms|may|malay)[._-]/i',
+            'tl' => '/[._-](tl|tag|tagalog)[._-]/i',
+            'sw' => '/[._-](sw|swa|swahili)[._-]/i',
+            'am' => '/[._-](am|amh|amharic)[._-]/i',
+            'yo' => '/[._-](yo|yor|yoruba)[._-]/i',
+            'ig' => '/[._-](ig|ibo|igbo)[._-]/i',
+            'ha' => '/[._-](ha|hau|hausa)[._-]/i',
+            'yo' => '/[._-](yo|yor|yoruba)[._-]/i',
+        ];
+
+        foreach ($patterns as $lang => $pattern) {
+            if (preg_match($pattern, $filename)) {
+                return $lang;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get language name from code
+     */
+    public static function getName(string $code): string
+    {
+        return self::$languageCodes[$code] ?? ucfirst($code);
+    }
+
+    /**
+     * Check if language code exists
+     */
+    public static function exists(string $code): bool
+    {
+        return isset(self::$languageCodes[$code]);
+    }
 }
