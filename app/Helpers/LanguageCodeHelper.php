@@ -254,8 +254,11 @@ class LanguageCodeHelper
     /**
      * Get language name from code
      */
-    public static function getName(string $code): string
-    {
+    public static function getName(string|null $code): string|null {
+        if ($code === '') {
+        return null;
+        }
+
         return self::$languageCodes[$code] ?? ucfirst($code);
     }
 

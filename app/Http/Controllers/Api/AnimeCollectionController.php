@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Models\AnimeCollection;
-
+use App\Helpers\LanguageCodeHelper;
 class AnimeCollectionController extends Controller
 {
     public function featured_animes(Request $request): JsonResponse
@@ -99,6 +99,7 @@ class AnimeCollectionController extends Controller
     {
         $lang = $request->query('lang', 'en');
 
+        
         // Lấy collection trending (slug: trending-animes)
         $withRelationships = [
             'collectionPosts.post.genres',
@@ -110,7 +111,7 @@ class AnimeCollectionController extends Controller
         if (!$trendingCollection) {
             return response()->json([]);
         }
-
+        
         $data = $trendingCollection->collectionPosts->map(function ($collectionPost, $index) use ($lang) {
             $post = $collectionPost->post;
             if (!$post) return null;
@@ -118,7 +119,15 @@ class AnimeCollectionController extends Controller
             return [
                 'id' => $post->id,
                 'title' => $this->getLocalizedTitle($post, $lang),
-                'posterUrl' => $post->poster_url ?? 'https://cdn.noitatnemucod.net/thumbnail/300x400/100/default.jpg',
+                'titles' => $post->titles->map(function($t) {
+                    $lang = trim((string) ($t->language ?? '')); // bảo đảm là string
+                    $name = $lang === '' ? null : LanguageCodeHelper::getName($lang);
+                    return [
+                        'language' => $name ?: 'Synonyms',
+                        'title' => $t->title,
+                    ];
+                })->toArray(),
+                'posterUrl' => $post->images->where('image_type', 'poster')->first()->image_url ?? 'https://cdn.noitatnemucod.net/thumbnail/300x400/100/default.jpg',
                 'rank' => $index + 1,
                 'slug' => $post->slug ?? '',
                 'description' => $post->synopsis ?? '',
