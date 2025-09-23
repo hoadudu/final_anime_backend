@@ -16,12 +16,15 @@ use App\Filament\Resources\Posts\Pages\CreatePost;
 use App\Filament\Resources\Posts\Schemas\PostForm;
 use App\Filament\Resources\Posts\Tables\PostsTable;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class PostResource extends Resource
 {
-    protected static ?string $navigationLabel = 'Films';
+    protected static ?string $navigationLabel = 'Posts';
 
     protected static ?int $navigationSort = NavigationSort::POSTS;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Films';
 
     protected static ?string $model = Post::class;
 

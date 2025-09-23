@@ -41,14 +41,14 @@ class PostsTable
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->visible(),
-                TextColumn::make('type')
-                    ->searchable(),
-                TextColumn::make('source')
-                    ->searchable(),
+                TextColumn::make('type'),
+                    
+                TextColumn::make('source'),
+                    
                 TextColumn::make('episodes')
                     ->label('Episodes')
                     ->numeric()
-                    ->sortable()
+                    
                     ->getStateUsing(function ($record) {
                         return $record->episodeList()->count();
                     })
@@ -71,8 +71,8 @@ class PostsTable
                     ->color(fn (int $state): string => $state > 0 ? 'success' : 'gray')
                     ->sortable(false)
                     ->action(UploadSubtitlesAction::make()),
-                TextColumn::make('status')
-                    ->searchable(),
+                TextColumn::make('status'),
+                    
                 IconColumn::make('airing')
                     ->boolean(),
                 TextColumn::make('aired_from')
@@ -81,12 +81,12 @@ class PostsTable
                 TextColumn::make('aired_to')
                     ->date()
                     ->sortable(),
-                TextColumn::make('duration')
-                    ->searchable(),
-                TextColumn::make('rating')
-                    ->searchable(),
-                TextColumn::make('season')
-                    ->searchable(),
+                TextColumn::make('duration'),
+                    
+                TextColumn::make('rating'),
+                    
+                TextColumn::make('season'),
+                    
                 TextColumn::make('broadcast')
                     ->dateTime()
                     ->sortable(),

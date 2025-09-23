@@ -9,6 +9,8 @@ class NavigationSort
 {
     // Main Content
     const POSTS = 1;
+    const BILLBOARDS = 2;
+    const COLLECTIONS = 3;
     const EPISODES = 5;    
     const STREAMS = 7;
     const COMMENTS = 8;

@@ -1,11 +1,15 @@
 <?php
 
-use App\Http\Controllers\Api\UserAnimeListController;
-use App\Http\Controllers\Api\CommentController;
-use App\Http\Controllers\Api\CommentReportController;
-use App\Http\Controllers\Api\SubtitleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\GenreController;
+use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\SubtitleController;
+
+use App\Http\Controllers\Api\CommentReportController;
+use App\Http\Controllers\Api\UserAnimeListController;
+use App\Http\Controllers\Api\FrontEndDrawerController;
+use App\Http\Controllers\Api\AnimeCollectionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,3 +68,16 @@ Route::prefix('streams')->group(function () {
 Route::middleware('auth:sanctum')->prefix('admin/subtitles')->group(function () {
     Route::post('/{subtitle}/clear-cache', [SubtitleController::class, 'clearCache']);
 });
+
+// Genres routes (public access)
+Route::get('/genres', [GenreController::class, 'index']);
+
+// Collections routes (public access)
+Route::get('/collections/featured-animes', [AnimeCollectionController::class, 'featured_animes']);
+Route::get('/collections/trending-animes', [AnimeCollectionController::class, 'trending_animes']);
+
+// Frontend drawer routes (public access)
+Route::get('/drawer', [FrontEndDrawerController::class, 'index']);
+
+
+// APIS FOR INDEX PAGE FRONTEND

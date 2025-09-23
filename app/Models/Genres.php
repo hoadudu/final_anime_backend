@@ -17,10 +17,27 @@ class Genres extends Model
     protected $fillable = [
         'mal_id',
         'name',
+        'name_vn',
         'slug',
         'description',
         'type',
     ];
+
+    /**
+     * Accessor for category (alias for type)
+     */
+    public function getCategoryAttribute()
+    {
+        return $this->type;
+    }
+
+    /**
+     * Get localized name
+     */
+    public function getLocalizedName($lang = 'en')
+    {
+        return $lang === 'vi' ? $this->name_vn : $this->name;
+    }
 
     /**
      * Scope theo type
@@ -55,10 +72,18 @@ class Genres extends Model
     }
 
     /**
-     * Lấy danh sách demographics
+     * Get the posts that use this genre through PostMorphable
      */
-    public static function getDemographics()
+    public function posts()
     {
-        return self::ofType('demographics')->get();
+        return $this->morphMany(PostMorphable::class, 'morphable');
+    }
+
+    /**
+     * Get the count of posts using this genre
+     */
+    public function getPostsCountAttribute()
+    {
+        return $this->posts()->count();
     }
 }
