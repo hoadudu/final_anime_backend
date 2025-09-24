@@ -13,16 +13,22 @@ use App\Models\PostCharacter;
 use App\Models\Character;
 use App\Models\Episode;
 use App\Models\Comment;
+use CyrildeWit\EloquentViewable\InteractsWithViews;
+use CyrildeWit\EloquentViewable\Contracts\Viewable;
+use Cog\Contracts\Love\Reactable\Models\Reactable as ReactableContract;
+use Cog\Laravel\Love\Reactable\Models\Traits\Reactable;
 
 /**
  * @mixin IdeHelperPost
  */
-class Post extends Model implements HasMedia
+class Post extends Model implements HasMedia,Viewable, ReactableContract
 {
     // * The table associated with the model.
     // `id`, `mal_id`, `title`, `slug`, `type`, `source`, `episodes`, `status`, `airing`, `aired_from`, `aired_to`, `duration`, `rating`, `synopsis`, `background`, `season`, `broadcast`, `approved`, `created_at`, `updated_at`
     use SoftDeletes;
     use InteractsWithMedia;
+    use InteractsWithViews;
+    use Reactable;
     protected $table = 'anime_posts';
     protected $fillable = [
         'mal_id',
@@ -32,8 +38,8 @@ class Post extends Model implements HasMedia
         'type',
         'source',
         'episodes',
-        'status',
-        'airing',
+        'status', // 'Completed', 'Ongoing', 'Upcoming' , 'Dropped'
+        'airing', // boolean 0 = false, 1 = true
         'aired_from',
         'aired_to',
         'duration',
@@ -52,6 +58,7 @@ class Post extends Model implements HasMedia
         'film_country',
         'film_lb',
         'film_type',
+        'love_reactant_id',
 
             
 
@@ -522,5 +529,21 @@ class Post extends Model implements HasMedia
 
         $this->addMediaCollection('post_gallery')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    
+
+    public function translations()
+    {
+        return $this->morphMany(Translation::class, 'translatable');
+    }
+
+    public function translate($lang = 'vi', $field = 'name')
+    {
+        return $this->translations()
+            ->where('lang', $lang)
+            ->where('field', $field)
+            ->first()
+            ->value ?? $this->code;
     }
 }

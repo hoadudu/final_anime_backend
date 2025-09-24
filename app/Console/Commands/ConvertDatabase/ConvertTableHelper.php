@@ -34,11 +34,12 @@ class ConvertTableHelper
      */
     public static function mapStatus(?string $statusCode): string
     {
+        // Completed','Ongoing','Upcoming','Dropped'
         return match ($statusCode) {
-            '1' => 'finished_airing',
-            '2' => 'currently_airing',
-            '3' => 'not_yet_aired',
-            default => 'finished_airing' // Default to finished
+            '1' => 'Completed',
+            '2' => 'Ongoing',
+            '3' => 'Upcoming',
+            default => 'Dropped'
         };
     }
 
@@ -208,5 +209,53 @@ class ConvertTableHelper
     public static function batchUpsert(string $modelClass, array $records, array $uniqueBy, array $updateFields = []): void
     {
         $modelClass::upsert($records, $uniqueBy, $updateFields);
+    }
+    public static function checkCompletedFromArrayStringOfOldDb($arrString)
+    {
+        if (empty($arrString)) {
+            return 'Ongoing';
+        }
+
+        foreach ($arrString as $value) {
+            if (empty($value)) {
+                continue;
+            }
+
+            $normalized = strtolower(trim($value));
+
+            // 1. Trường hợp từ khóa "completed" hoặc "full"
+            if (in_array($normalized, ['completed', 'full'], true)) {
+                return 'Completed';
+            }
+
+            // 2. Trường hợp có ký tự "/" => tách 2 bên và so sánh
+            if (strpos($normalized, '/') !== false) {
+                [$left, $right] = array_map('trim', explode('/', $normalized, 2));
+
+                if (!empty($left) && !empty($right)) {
+                    // Nếu 2 bên giống hệt (text thường)
+                    if ($left === $right) {
+                        return 'Completed';
+                    }
+
+                    // Nếu 2 bên là số => so sánh số
+                    if (is_numeric($left) && is_numeric($right) && intval($left) === intval($right)) {
+                        return 'Completed';
+                    }
+                }
+            }
+
+            // 3. Trường hợp có khoảng trắng => ví dụ "01 BD / 01 BD"
+            if (preg_match('/^(.+)\s*\/\s*(.+)$/', $normalized, $matches)) {
+                $left  = trim($matches[1]);
+                $right = trim($matches[2]);
+
+                if ($left === $right) {
+                    return 'Completed';
+                }
+            }
+        }
+
+        return 'Ongoing';
     }
 }

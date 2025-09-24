@@ -42,23 +42,23 @@ class ConvertHelper
                 'Saturdays' => 6,
                 'Sundays' => 0,
             ];
-            
+
             $dayOfWeek = $dayMap[$day] ?? null;
-            
+
             if ($dayOfWeek === null) {
                 return null;
             }
-            
+
             // Tạo đối tượng Carbon cho ngày hiện tại
             $date = Carbon::now($timezone);
-            
+
             // Điều chỉnh ngày đến ngày trong tuần cần tìm
             $date->startOfWeek()->addDays($dayOfWeek);
-            
+
             // Thiết lập thời gian
             list($hour, $minute) = explode(':', $time);
             $date->setHour((int)$hour)->setMinute((int)$minute)->setSecond(0);
-            
+
             return $date->toDateTimeString();
         } catch (\Exception $e) {
             // Log lỗi nếu cần
@@ -73,24 +73,24 @@ class ConvertHelper
      * @param string|null $broadcastString
      * @return array|null
      */
-    public static function parseBroadcastString($broadcastString) 
+    public static function parseBroadcastString($broadcastString)
     {
         if (empty($broadcastString)) {
             return null;
         }
-        
+
         try {
             // Pattern để bắt "Sundays at 01:58 (JST)"
             preg_match('/^(\w+)s at (\d{2}:\d{2}) \((\w+)\)$/', $broadcastString, $matches);
-            
+
             if (count($matches) < 4) {
                 return null;
             }
-            
+
             $day = $matches[1] . 's'; // "Sunday" + "s"
             $time = $matches[2]; // "01:58"
             $timezoneCode = $matches[3]; // "JST"
-            
+
             // Map mã timezone sang tên timezone
             $timezoneMap = [
                 'JST' => 'Asia/Tokyo',
@@ -99,9 +99,9 @@ class ConvertHelper
                 'UTC' => 'UTC',
                 'GMT' => 'GMT',
             ];
-            
+
             $timezone = $timezoneMap[$timezoneCode] ?? 'UTC';
-            
+
             return [
                 'day' => $day,
                 'time' => $time,
@@ -125,4 +125,6 @@ class ConvertHelper
         $broadcast = self::parseBroadcastString($broadcastString);
         return $broadcast ? self::broadcastToTimestamp($broadcast) : null;
     }
+
+    
 }

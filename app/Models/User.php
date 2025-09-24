@@ -8,15 +8,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
-
+use Cog\Contracts\Love\Reacterable\Models\Reacterable as ReacterableContract;
+use Cog\Laravel\Love\Reacterable\Models\Traits\Reacterable;
 
 /**
  * @mixin IdeHelperUser
  */
-class User extends Authenticatable 
+class User extends Authenticatable implements ReacterableContract
+
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens; 
+    use HasFactory, Notifiable, HasApiTokens, Reacterable; 
     // use SoftDeletes;
     
 
@@ -34,7 +36,8 @@ class User extends Authenticatable
         'username',
         'password_legacy',
         'fullname',
-        'user_id'
+        'user_id',
+        'love_reacter_id',
     ];
 
     /**

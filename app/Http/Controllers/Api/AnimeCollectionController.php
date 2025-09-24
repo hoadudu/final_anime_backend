@@ -140,6 +140,7 @@ class AnimeCollectionController extends Controller
         return response()->json($data);
     }
 
+    
     /**
      * Get localized title based on language preference
      */

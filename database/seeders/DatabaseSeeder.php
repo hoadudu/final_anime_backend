@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Cog\Laravel\Love\ReactionType\Models\ReactionType;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,9 +16,19 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        ReactionType::firstOrCreate([
+            'name' => 'Like',
+        ]);
+
+        ReactionType::firstOrCreate([
+            'name' => 'Favorite',
+        ]);
+
+        ReactionType::firstOrCreate([
+            'name' => 'Bookmark',
+        ]);
+        ReactionType::firstOrCreate([
+            'name' => 'Haha',
         ]);
     }
 }

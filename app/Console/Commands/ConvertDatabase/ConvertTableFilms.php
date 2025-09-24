@@ -159,7 +159,7 @@ class ConvertTableFilms extends Command
 
 
             // Status and type
-            'status' => ConvertTableHelper::mapStatus($film->film_director ?? null),
+            'status' => ConvertTableHelper::checkCompletedFromArrayStringOfOldDb([$film->film_director ?? null, $film->film_time ?? null]),
             'type' => ConvertTableHelper::mapType($film->film_type ?? null),
 
             // Episodes
@@ -189,7 +189,7 @@ class ConvertTableFilms extends Command
             'updated_at' => now(),
         ];
     }
-    
+
     /**
      * Attach genres to post based on film_cat
      */

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\GenreController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\SubtitleController;
 
+use App\Http\Controllers\Api\FeaturedListController;
 use App\Http\Controllers\Api\CommentReportController;
 use App\Http\Controllers\Api\UserAnimeListController;
 use App\Http\Controllers\Api\FrontEndDrawerController;
@@ -75,6 +76,16 @@ Route::get('/genres', [GenreController::class, 'index']);
 // Collections routes (public access)
 Route::get('/collections/featured-animes', [AnimeCollectionController::class, 'featured_animes']);
 Route::get('/collections/trending-animes', [AnimeCollectionController::class, 'trending_animes']);
+
+// Featured lists routes (public access)
+Route::get('/featured-lists/top-airing', [FeaturedListController::class, 'top_airing']);
+Route::get('/featured-lists/most-popular-animes', [FeaturedListController::class, 'most_popular_animes']);
+Route::get('/featured-lists/most-liked-animes', [FeaturedListController::class, 'most_liked_animes']);
+Route::get('/featured-lists/latest-completed', [FeaturedListController::class, 'latest_completed']);
+
+
+
+
 
 // Frontend drawer routes (public access)
 Route::get('/drawer', [FrontEndDrawerController::class, 'index']);
