@@ -56,4 +56,9 @@ class PostHelper
         // Fallback to default title or display title
         return $post->title ?? $post->getDisplayTitleAttribute() ?? 'Unknown Title';
     }
+    public function cleanHtmlTags($text)
+    {
+        return strip_tags($text);
+    }
+    
 }

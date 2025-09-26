@@ -6,11 +6,11 @@ use App\Http\Controllers\Api\GenreController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\SubtitleController;
 
-use App\Http\Controllers\Api\FeaturedListController;
+use App\Http\Controllers\Api\Pages\Home\HomeFrontEndController;
 use App\Http\Controllers\Api\CommentReportController;
 use App\Http\Controllers\Api\UserAnimeListController;
 use App\Http\Controllers\Api\FrontEndDrawerController;
-use App\Http\Controllers\Api\AnimeCollectionController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -74,14 +74,15 @@ Route::middleware('auth:sanctum')->prefix('admin/subtitles')->group(function () 
 Route::get('/genres', [GenreController::class, 'index']);
 
 // Collections routes (public access)
-Route::get('/collections/featured-animes', [AnimeCollectionController::class, 'featured_animes']);
-Route::get('/collections/trending-animes', [AnimeCollectionController::class, 'trending_animes']);
+Route::get('/home-page/featured-animes', [HomeFrontEndController::class, 'featured_animes']);
+Route::get('/home-page/trending-animes', [HomeFrontEndController::class, 'trending_animes']);
 
 // Featured lists routes (public access)
-Route::get('/featured-lists/top-airing', [FeaturedListController::class, 'top_airing']);
-Route::get('/featured-lists/most-popular-animes', [FeaturedListController::class, 'most_popular_animes']);
-Route::get('/featured-lists/most-liked-animes', [FeaturedListController::class, 'most_liked_animes']);
-Route::get('/featured-lists/latest-completed', [FeaturedListController::class, 'latest_completed']);
+Route::get('/home-page/top-airing', [HomeFrontEndController::class, 'top_airing']);
+Route::get('/home-page/most-popular-animes', [HomeFrontEndController::class, 'most_popular_animes']);
+Route::get('/home-page/most-liked-animes', [HomeFrontEndController::class, 'most_liked_animes']);
+Route::get('/home-page/latest-completed', [HomeFrontEndController::class, 'latest_completed']);
+Route::get('/home-page/latest-episode-posts', [HomeFrontEndController::class, 'latest_episode_posts']);
 
 
 
