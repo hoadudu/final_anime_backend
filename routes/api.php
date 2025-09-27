@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Pages\Home\HomeFrontEndController;
 use App\Http\Controllers\Api\CommentReportController;
 use App\Http\Controllers\Api\UserAnimeListController;
 use App\Http\Controllers\Api\FrontEndDrawerController;
+use App\Http\Controllers\Api\Sidebar\TopController;
 
 
 /*
@@ -83,6 +84,9 @@ Route::get('/home-page/most-popular-animes', [HomeFrontEndController::class, 'mo
 Route::get('/home-page/most-liked-animes', [HomeFrontEndController::class, 'most_liked_animes']);
 Route::get('/home-page/latest-completed', [HomeFrontEndController::class, 'latest_completed']);
 Route::get('/home-page/latest-episode-posts', [HomeFrontEndController::class, 'latest_episode_posts']);
+
+// Top anime routes (public access)
+Route::get('/sidebar/top-anime', [TopController::class, 'index']);
 
 
 

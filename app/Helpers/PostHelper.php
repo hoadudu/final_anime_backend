@@ -61,4 +61,16 @@ class PostHelper
         return strip_tags($text);
     }
     
+    public function formatTitles($titles): array
+    {
+        return $titles->map(function($title) {
+            $lang = trim((string) ($title->language ?? ''));
+            $name = $lang === '' ? null : LanguageCodeHelper::getName($lang);
+            
+            return [
+                'language' => $name ?: 'Synonyms',
+                'title' => $title->title,
+            ];
+        })->toArray();
+    }
 }
