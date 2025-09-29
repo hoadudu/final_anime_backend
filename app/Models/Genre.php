@@ -5,12 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @mixin IdeHelperGenres
- */
-class Genres extends Model
+class Genre extends Model
 {
-    
     use SoftDeletes;
     protected $table = 'anime_genres';
     public $timestamps = false;

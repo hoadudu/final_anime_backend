@@ -73,4 +73,18 @@ class PostHelper
             ];
         })->toArray();
     }
+    public function beautifyAnimeType($type): string
+    {
+        $type = strtolower($type ?? 'Unknown');
+        $typeMapping = [
+            'tv' => 'TV',
+            'ova' => 'OVA',
+            'movie' => 'Movie',
+            'special' => 'Special',
+            'unknown' => 'Unknown'
+        ];
+
+        return $typeMapping[$type] ?? 'Unknown';
+    }
+
 }

@@ -52,6 +52,14 @@ class JikanApiClient extends BaseApiClient
     }
 
     /**
+     * Get anime videos
+     */
+    public function getAnimeVideos(int $malId): array
+    {
+        return $this->makeRequest("/anime/{$malId}/videos");
+    }
+
+    /**
      * Get anime producers/studios
      */
     public function getAnimeProducers(int $malId): array

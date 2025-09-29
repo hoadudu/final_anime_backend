@@ -2,26 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
-use App\Models\PostCharacter;
-use App\Models\Character;
-use App\Models\Episode;
+
 use App\Models\Comment;
-use CyrildeWit\EloquentViewable\InteractsWithViews;
+use App\Models\Episode;
+use App\Models\Character;
+use App\Models\PostCharacter;
+use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use CyrildeWit\EloquentViewable\Contracts\Viewable;
-use Cog\Contracts\Love\Reactable\Models\Reactable as ReactableContract;
+use CyrildeWit\EloquentViewable\InteractsWithViews;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Cog\Laravel\Love\Reactable\Models\Traits\Reactable;
+use Cog\Contracts\Love\Reactable\Models\Reactable as ReactableContract;
 
 /**
  * @mixin IdeHelperPost
  */
-class Post extends Model implements HasMedia,Viewable, ReactableContract
+class Post extends Model implements HasMedia, Viewable, ReactableContract
 {
     // * The table associated with the model.
     // `id`, `mal_id`, `title`, `slug`, `type`, `source`, `episodes`, `status`, `airing`, `aired_from`, `aired_to`, `duration`, `rating`, `synopsis`, `background`, `season`, `broadcast`, `approved`, `created_at`, `updated_at`
@@ -60,12 +61,14 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
         'film_type',
         'love_reactant_id',
 
-            
+
 
     ];
 
-    protected $casts = [        
+    protected $casts = [
         'external' => 'array',
+        'aired_from' => 'date',
+        'aired_to' => 'date',
     ];
 
     /**
@@ -74,7 +77,7 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
     protected static function boot()
     {
         parent::boot();
-        
+
         static::created(function ($post) {
             // Set subtitle directory after creating (when ID is available)
             if (empty($post->subtitle_directory)) {
@@ -89,36 +92,37 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
             if ($post->isDirty('slug') && !$post->isDirty('subtitle_directory')) {
                 $oldDirectory = $post->getOriginal('subtitle_directory') ?? "subtitles/{$post->id}_{$post->getOriginal('slug')}";
                 $newDirectory = "subtitles/{$post->id}_{$post->slug}";
-                
+
                 // Move directory if it exists and new directory doesn't exist
-                if (Storage::disk('public')->exists($oldDirectory) && 
-                    !Storage::disk('public')->exists($newDirectory)) {
-                    
+                if (
+                    Storage::disk('public')->exists($oldDirectory) &&
+                    !Storage::disk('public')->exists($newDirectory)
+                ) {
+
                     try {
                         // Create parent directory if needed
                         Storage::disk('public')->makeDirectory(dirname($newDirectory));
-                        
+
                         // Move the entire directory
                         $files = Storage::disk('public')->allFiles($oldDirectory);
                         foreach ($files as $file) {
                             $newFile = str_replace($oldDirectory, $newDirectory, $file);
                             Storage::disk('public')->move($file, $newFile);
                         }
-                        
+
                         // Remove old directory if empty
                         if (empty(Storage::disk('public')->allFiles($oldDirectory))) {
                             Storage::disk('public')->deleteDirectory($oldDirectory);
                         }
-                        
                     } catch (\Exception $e) {
                         Log::error("Failed to move subtitle directory for post {$post->id}: " . $e->getMessage());
                     }
                 }
-                
+
                 $post->subtitle_directory = $newDirectory;
             }
         });
-        
+
         static::saving(function ($post) {
             // Auto-set title from primary title if not set
             if (!$post->title && $post->exists) {
@@ -135,11 +139,11 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
         $primaryTitle = $this->titles()
             ->where('is_primary', true)
             ->first();
-            
+
         if ($primaryTitle) {
             return $primaryTitle->title;
         }
-        
+
         // Fallback to first title if no primary
         $firstTitle = $this->titles()->first();
         return $firstTitle?->title;
@@ -219,6 +223,37 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
     {
         return $this->hasMany(PostProducer::class, 'post_id', 'id');
     }
+
+    public function getProducers()
+    {
+        return $this->belongsToMany(
+            Producer::class,
+            'anime_post_producers',
+            'post_id',
+            'producer_id'
+        )->where('type', 'producer');
+    }
+
+    public function getStudios()
+    {
+        return $this->belongsToMany(
+            Producer::class,
+            'anime_post_producers',
+            'post_id',
+            'producer_id'
+        )->where('type', 'studio');
+    }
+
+    public function getLicensors()
+    {
+        return $this->belongsToMany(
+            Producer::class,
+            'anime_post_producers',
+            'post_id',
+            'producer_id'
+        )->where('type', 'licensor');
+    }
+
 
     /**
      * Get all character relationships for this post.
@@ -301,7 +336,7 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
     public function genres()
     {
         return $this->morphables()
-            ->where('morphable_type', Genres::class)
+            ->where('morphable_type', Genre::class)
             ->with('morphable');
     }
 
@@ -314,6 +349,14 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
             ->whereHas('morphable', function ($query) use ($type) {
                 $query->where('type', $type);
             })
+            ->get()
+            ->pluck('morphable');
+    }
+    
+    public function getGenreAll()
+    {
+        return $this->morphables()
+            ->with('morphable')
             ->get()
             ->pluck('morphable');
     }
@@ -346,7 +389,7 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
      */
     public function attachGenresFromApiData($apiData)
     {
-        
+
         $apiData = $apiData['data'];
         // Clear existing genres
         PostMorphable::detachAllGenresFromPost($this->id);
@@ -354,13 +397,13 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
         $genreTypes = ['genres', 'explicit_genres', 'themes', 'demographics'];
 
         foreach ($genreTypes as $type) {
-            
+
             if (isset($apiData[$type]) && is_array($apiData[$type])) {
                 foreach ($apiData[$type] as $genreData) {
                     if (isset($genreData['mal_id'])) {
                         // Find genre by mal_id and type
-                        
-                        $genre = Genres::where('mal_id', $genreData['mal_id'])
+
+                        $genre = Genre::where('mal_id', $genreData['mal_id'])
                             ->where('type', $type)
                             ->first();
 
@@ -531,7 +574,7 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 
-    
+
 
     public function translations()
     {
@@ -545,5 +588,15 @@ class Post extends Model implements HasMedia,Viewable, ReactableContract
             ->where('field', $field)
             ->first()
             ->value ?? $this->code;
+    }
+
+    /**
+     * Quan hệ belongsToMany với AnimeGroup thông qua AnimeGroupPost
+     */
+    public function animeGroups()
+    {
+        return $this->belongsToMany(AnimeGroup::class, 'anime_group_posts', 'post_id', 'group_id')
+                    ->withPivot('position', 'note')
+                    ->orderBy('anime_group_posts.position');
     }
 }

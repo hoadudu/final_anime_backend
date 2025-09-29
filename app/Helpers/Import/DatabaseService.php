@@ -6,8 +6,9 @@ use App\Models\Post;
 use App\Models\PostTitle;
 use App\Models\PostImage;
 use App\Models\PostVideo;
-use App\Models\Genres;
+use App\Models\Genre;
 use App\Models\Producer;
+use App\Models\PostProducer;
 use App\Models\Character;
 use App\Models\Episode;
 use App\Models\PostCharacter;
@@ -108,9 +109,11 @@ class DatabaseService
         foreach ($images as $imageData) {
             PostImage::create([
                 'post_id' => $post->id,
-                'type' => $imageData['type'],
-                'size' => $imageData['size'],
-                'url' => $imageData['url'],
+                'image_type' => $imageData['image_type'],
+                'image_url' => $imageData['image_url'],
+                'alt_text' => $imageData['alt_text'] ?? null,
+                'language' => $imageData['language'] ?? null,
+                'is_primary' => $imageData['is_primary'] ?? false,
             ]);
         }
     }
@@ -127,10 +130,12 @@ class DatabaseService
         foreach ($videos as $videoData) {
             PostVideo::create([
                 'post_id' => $post->id,
-                'type' => $videoData['type'],
+                'video_type' => $videoData['type'],
                 'url' => $videoData['url'],
-                'embed_url' => $videoData['embed_url'] ?? null,
-                'youtube_id' => $videoData['youtube_id'] ?? null,
+                'meta' => [
+                    'embed_url' => $videoData['embed_url'] ?? null,
+                    'youtube_id' => $videoData['youtube_id'] ?? null,
+                ],
             ]);
         }
     }
@@ -147,7 +152,7 @@ class DatabaseService
         $newGenreIds = [];
 
         foreach ($genresData as $genreData) {
-            $genre = Genres::updateOrCreate(
+            $genre = Genre::updateOrCreate(
                 ['mal_id' => $genreData['mal_id']],
                 [
                     'name' => $genreData['name'],
@@ -178,15 +183,15 @@ class DatabaseService
     {
         $stats = ['created' => 0, 'updated' => 0, 'linked' => 0];
         
-        $newProducerIds = [];
-
+        // Delete existing producer relationships
+        PostProducer::where('post_id', $post->id)->delete();
+        
         foreach ($producersData as $producerData) {
             $producer = Producer::updateOrCreate(
                 ['mal_id' => $producerData['mal_id']],
                 [
-                    'name' => $producerData['name'],
-                    'type' => $producerData['type'],
-                    'url' => $producerData['url'] ?? null,
+                    'slug' => \Illuminate\Support\Str::slug($producerData['name']),
+                    'titles' => ['en' => $producerData['name']],
                 ]
             );
 
@@ -196,12 +201,15 @@ class DatabaseService
                 $stats['updated']++;
             }
 
-            $newProducerIds[] = $producer->id;
+            // Create the pivot relationship with type
+            PostProducer::create([
+                'post_id' => $post->id,
+                'producer_id' => $producer->id,
+                'type' => $producerData['type'],
+            ]);
+            
+            $stats['linked']++;
         }
-
-        // Sync the relationship
-        $post->producers()->sync($newProducerIds);
-        $stats['linked'] = count($newProducerIds);
 
         return $stats;
     }

@@ -17,12 +17,12 @@ class DataParser
     public static function parseAnimeData(array $apiData): array
     {
         $data = $apiData['data'] ?? [];
-        
+
         return [
             'basic_info' => self::parseBasicInfo($data),
             'titles' => self::parseTitles($data['titles'] ?? []),
             'images' => self::parseImages($data['images'] ?? []),
-            'videos' => self::parseVideos($data['trailer'] ?? []),
+            'videos' => self::parseVideos($data['videos'] ?? []),
             'genres' => self::parseGenres($data),
             'producers' => self::parseProducers($data),
         ];
@@ -40,7 +40,7 @@ class DataParser
             'type' => $data['type'] ?? null,
             'source' => $data['source'] ?? null,
             'episodes' => $data['episodes'] ?? null,
-            'status' => $data['status'] ?? null,
+            'status' => self::parseStatus($data['status'] ?? 'Upcoming'),
             'airing' => $data['airing'] ?? false,
             'aired_from' => self::parseDate($data['aired']['from'] ?? null),
             'aired_to' => self::parseDate($data['aired']['to'] ?? null),
@@ -48,7 +48,7 @@ class DataParser
             'rating' => $data['rating'] ?? null,
             'synopsis' => $data['synopsis'] ?? null,
             'background' => $data['background'] ?? null,
-            'season' => $data['season'] ?? null,
+            'season' => self::parseSeason($data['season'] ?? null),
             'year' => $data['year'] ?? null,
             'broadcast' => null, // Will handle broadcast separately if needed
             'approved' => true,
@@ -61,21 +61,21 @@ class DataParser
     public static function parseTitles(array $titles): array
     {
         $parsedTitles = [];
-        
+
         foreach ($titles as $title) {
             $titleType = $title['type'] ?? 'Default';
             $titleText = $title['title'] ?? '';
-            
+
             // Map title type and determine language
             [$mappedType, $language] = self::mapTitleTypeAndLanguage($titleType);
-            
+
             $parsedTitles[] = [
                 'type' => $mappedType,
                 'title' => $titleText,
                 'language' => $language,
             ];
         }
-        
+
         return $parsedTitles;
     }
 
@@ -86,7 +86,7 @@ class DataParser
     {
         $typeMap = [
             'Default' => ['Default', null],
-            'Synonym' => ['Synonym', null], 
+            'Synonym' => ['Synonym', null],
             'Official' => ['Official', 'ja'], // Official titles are typically Japanese
             'Alternative' => ['Alternative', null],
             'Japanese' => ['Official', 'ja'],
@@ -108,40 +108,72 @@ class DataParser
     {
         $parsedImages = [];
         
-        foreach ($images as $type => $imageSet) {
-            if (is_array($imageSet)) {
-                foreach ($imageSet as $size => $url) {
-                    if ($url) {
-                        $parsedImages[] = [
-                            'type' => $type,
-                            'size' => $size,
-                            'url' => $url,
-                        ];
-                    }
-                }
+        foreach ($images as $image) {
+            if (isset($image['jpg']['image_url'])) {
+                $parsedImages[] = [
+                    'image_type' => 'poster',
+                    'image_url' => $image['jpg']['image_url'],
+                    'alt_text' => null,
+                    'language' => null,
+                    'is_primary' => false,
+                ];
             }
         }
-        
+
         return $parsedImages;
     }
 
     /**
      * Parse video/trailer data
      */
-    public static function parseVideos(array $trailer): array
+    public static function parseVideos(array $videosData): array
     {
-        if (empty($trailer)) {
-            return [];
+        $parsedVideos = [];
+
+        // Parse promo videos
+        if (!empty($videosData['promo'])) {
+            foreach ($videosData['promo'] as $promo) {
+                if (!empty($promo['trailer'])) {
+                    $parsedVideos[] = [
+                        'type' => 'promo',
+                        'title' => $promo['title'] ?? null,
+                        'url' => $promo['trailer']['url'] ?? '',
+                        'embed_url' => $promo['trailer']['embed_url'] ?? '',
+                        'youtube_id' => $promo['trailer']['youtube_id'] ?? '',
+                    ];
+                }
+            }
         }
 
-        return [
-            [
-                'type' => 'trailer',
-                'url' => $trailer['url'] ?? '',
-                'embed_url' => $trailer['embed_url'] ?? '',
-                'youtube_id' => $trailer['youtube_id'] ?? '',
-            ]
-        ];
+        // Parse music videos
+        if (!empty($videosData['music_videos'])) {
+            foreach ($videosData['music_videos'] as $mv) {
+                if (!empty($mv['video'])) {
+                    $parsedVideos[] = [
+                        'type' => 'music_videos',
+                        'title' => $mv['title'] ?? null,
+                        'url' => $mv['video']['url'] ?? '',
+                        'embed_url' => $mv['video']['embed_url'] ?? '',
+                        'youtube_id' => $mv['video']['youtube_id'] ?? '',
+                    ];
+                }
+            }
+        }
+
+        // Parse episode videos (if any)
+        if (!empty($videosData['episodes'])) {
+            foreach ($videosData['episodes'] as $episode) {
+                $parsedVideos[] = [
+                    'type' => 'episodes',
+                    'title' => $episode['title'] ?? null,
+                    'url' => $episode['url'] ?? '',
+                    'embed_url' => '', // Episodes might not have embed URLs
+                    'youtube_id' => '', // Episodes might not have YouTube IDs
+                ];
+            }
+        }
+
+        return $parsedVideos;
     }
 
     /**
@@ -150,7 +182,7 @@ class DataParser
     public static function parseGenres(array $data): array
     {
         $genres = [];
-        
+
         // Regular genres
         foreach ($data['genres'] ?? [] as $genre) {
             $genres[] = [
@@ -159,7 +191,7 @@ class DataParser
                 'type' => 'genre',
             ];
         }
-        
+
         // Themes
         foreach ($data['themes'] ?? [] as $theme) {
             $genres[] = [
@@ -168,7 +200,7 @@ class DataParser
                 'type' => 'theme',
             ];
         }
-        
+
         // Demographics
         foreach ($data['demographics'] ?? [] as $demographic) {
             $genres[] = [
@@ -177,7 +209,7 @@ class DataParser
                 'type' => 'demographic',
             ];
         }
-        
+
         return $genres;
     }
 
@@ -187,7 +219,7 @@ class DataParser
     public static function parseProducers(array $data): array
     {
         $producers = [];
-        
+
         // Producers
         foreach ($data['producers'] ?? [] as $producer) {
             $producers[] = [
@@ -197,7 +229,7 @@ class DataParser
                 'url' => $producer['url'] ?? null,
             ];
         }
-        
+
         // Studios
         foreach ($data['studios'] ?? [] as $studio) {
             $producers[] = [
@@ -207,7 +239,7 @@ class DataParser
                 'url' => $studio['url'] ?? null,
             ];
         }
-        
+
         // Licensors
         foreach ($data['licensors'] ?? [] as $licensor) {
             $producers[] = [
@@ -217,7 +249,7 @@ class DataParser
                 'url' => $licensor['url'] ?? null,
             ];
         }
-        
+
         return $producers;
     }
 
@@ -227,11 +259,11 @@ class DataParser
     public static function parseCharacters(array $characters): array
     {
         $parsedCharacters = [];
-        
+
         foreach ($characters as $characterData) {
             $character = $characterData['character'] ?? [];
             $voiceActors = $characterData['voice_actors'] ?? [];
-            
+
             $parsedCharacters[] = [
                 'character' => [
                     'mal_id' => $character['mal_id'] ?? null,
@@ -249,7 +281,7 @@ class DataParser
                 }, $voiceActors)
             ];
         }
-        
+
         return $parsedCharacters;
     }
 
@@ -282,12 +314,12 @@ class DataParser
         $baseSlug = Str::slug($title);
         $slug = $baseSlug;
         $counter = 1;
-        
+
         while (Post::where('slug', $slug)->exists()) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
-        
+
         return $slug;
     }
 
@@ -299,11 +331,62 @@ class DataParser
         if (!$dateString) {
             return null;
         }
-        
+
         try {
             return date('Y-m-d', strtotime($dateString));
         } catch (\Exception $e) {
             return null;
         }
     }
+
+    /**
+     * Parse status string to valid ENUM value
+     */
+
+    public static function parseStatus(?string $statusString): string
+    {
+
+
+        if (!$statusString) {
+            return 'Upcoming';
+        }
+        $statusString = strtolower(trim($statusString));
+        // Not yet aired
+        if (stripos($statusString, 'not yet') !== false) {
+            return 'Upcoming';
+        }
+        // Currently airing
+        if (stripos($statusString, 'currently') !== false) {
+            return 'Ongoing';
+        }
+        // Finished airing
+        if (stripos($statusString, 'finished') !== false) {
+            return 'Completed';
+        }
+        return 'Upcoming';
+    }
+    /**
+     * Parse season string to valid ENUM value
+     */
+    public static function parseSeason(?string $seasonString): string
+    {
+        if (!$seasonString) {
+            return 'Unknown';
+        }
+
+        $seasonString = strtolower(trim($seasonString));
+
+        return match (true) {
+            str_contains($seasonString, 'winter') => 'Winter',
+            str_contains($seasonString, 'spring') => 'Spring',
+            str_contains($seasonString, 'summer') => 'Summer',
+            str_contains($seasonString, 'fall') => 'Fall',
+            default => 'Unknown',
+        };
+    }
+
+
+       
+
+
 }

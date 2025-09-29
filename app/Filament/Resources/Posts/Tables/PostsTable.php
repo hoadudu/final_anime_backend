@@ -23,6 +23,8 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use App\Filament\Actions\UploadSubtitlesAction;
 
+use function Laravel\Prompts\search;
+
 class PostsTable
 {
     public static function configure(Table $table): Table
@@ -31,6 +33,9 @@ class PostsTable
             ->columns([
                 TextColumn::make('mal_id')
                     ->copyable()
+                    ->searchable(query: function ($query, $search) {
+                        return $query->where('mal_id', $search); // so sánh tuyệt đối
+                    })
                     ->sortable(),
                 TextColumn::make('title')
                     ->label('Tiêu Đề')

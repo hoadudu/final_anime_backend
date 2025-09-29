@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Genre;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @mixin IdeHelperPostMorphable
@@ -44,7 +45,7 @@ class PostMorphable extends Model
         return self::firstOrCreate([
             'post_id' => $postId,
             'morphable_id' => $genreId,
-            'morphable_type' => Genres::class,
+            'morphable_type' => Genre::class,
         ]);
     }
 
@@ -54,7 +55,7 @@ class PostMorphable extends Model
     public static function detachAllGenresFromPost($postId)
     {
         return self::where('post_id', $postId)
-                  ->where('morphable_type', Genres::class)
+                  ->where('morphable_type', Genre::class)
                   ->delete();
     }
 }

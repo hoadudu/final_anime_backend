@@ -6,11 +6,12 @@ use App\Http\Controllers\Api\GenreController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\SubtitleController;
 
-use App\Http\Controllers\Api\Pages\Home\HomeFrontEndController;
+use App\Http\Controllers\Api\Sidebar\TopController;
 use App\Http\Controllers\Api\CommentReportController;
 use App\Http\Controllers\Api\UserAnimeListController;
 use App\Http\Controllers\Api\FrontEndDrawerController;
-use App\Http\Controllers\Api\Sidebar\TopController;
+use App\Http\Controllers\Api\Pages\Info\AnimeInfoController;
+use App\Http\Controllers\Api\Pages\Home\HomeFrontEndController;
 
 
 /*
@@ -75,13 +76,13 @@ Route::middleware('auth:sanctum')->prefix('admin/subtitles')->group(function () 
 Route::get('/genres', [GenreController::class, 'index']);
 
 // Collections routes (public access)
-Route::get('/home-page/featured-animes', [HomeFrontEndController::class, 'featured_animes']);
-Route::get('/home-page/trending-animes', [HomeFrontEndController::class, 'trending_animes']);
+Route::get('/home-page/hero-section', [HomeFrontEndController::class, 'featured_animes']);
+Route::get('/home-page/trending-carousel', [HomeFrontEndController::class, 'trending_animes']);
 
 // Featured lists routes (public access)
 Route::get('/home-page/top-airing', [HomeFrontEndController::class, 'top_airing']);
-Route::get('/home-page/most-popular-animes', [HomeFrontEndController::class, 'most_popular_animes']);
-Route::get('/home-page/most-liked-animes', [HomeFrontEndController::class, 'most_liked_animes']);
+Route::get('/home-page/most-popular', [HomeFrontEndController::class, 'most_popular_animes']);
+Route::get('/home-page/most-liked', [HomeFrontEndController::class, 'most_liked_animes']);
 Route::get('/home-page/latest-completed', [HomeFrontEndController::class, 'latest_completed']);
 Route::get('/home-page/latest-episode-posts', [HomeFrontEndController::class, 'latest_episode_posts']);
 
@@ -90,7 +91,10 @@ Route::get('/sidebar/top-anime', [TopController::class, 'index']);
 
 
 
+// post
 
+// Add this route
+Route::get('/anime/info/{id}', [AnimeInfoController::class, 'index']);
 
 // Frontend drawer routes (public access)
 Route::get('/drawer', [FrontEndDrawerController::class, 'index']);

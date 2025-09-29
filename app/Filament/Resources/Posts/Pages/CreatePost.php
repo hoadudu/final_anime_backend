@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Posts\Pages;
 
-use App\Models\Genres;
+use App\Models\Genre;
 use App\Models\PostMorphable;
 use App\Models\PostProducer;
 use App\Filament\Resources\Posts\PostResource;
@@ -39,7 +39,7 @@ class CreatePost extends CreateRecord
                     PostMorphable::firstOrCreate([
                         'post_id' => $record->id,
                         'morphable_id' => $genreId,
-                        'morphable_type' => Genres::class,
+                        'morphable_type' => Genre::class,
                     ]);
                 }
             }

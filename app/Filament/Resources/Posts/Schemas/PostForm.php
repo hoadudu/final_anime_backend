@@ -18,7 +18,7 @@ use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
-use App\Models\Genres;
+use App\Models\Genre;
 use App\Models\Producer;
 
 class PostForm
@@ -53,9 +53,28 @@ class PostForm
                                 TextInput::make('source'),
                                 TextInput::make('episodes')
                                     ->numeric(),
-                                TextInput::make('status'),
+                                Select::make('season')
+                                    ->options([
+                                        'Spring' => 'Spring',
+                                        'Summer' => 'Summer',
+                                        'Fall'   => 'Fall',
+                                        'Winter' => 'Winter',
+                                        'Unknown'   => 'Unknown',
+                                    ])
+                                    ->default('Unknown'),                                    
+                                Select::make('status')
+                                //'Completed','Ongoing','Ongoing','Dropped'
+                                ->options([
+                                    'Completed' => 'Completed',
+                                    'Ongoing' => 'Ongoing',
+                                    'Upcoming'   => 'Upcoming',
+                                    'Dropped' => 'Dropped',                                    
+                                ])                                
+                                ->default('Upcoming')
+                                ->required(),
+
                                 Toggle::make('airing'),
-                                    
+
                                 DatePicker::make('aired_from'),
                                 DatePicker::make('aired_to'),
                                 TextInput::make('duration'),
@@ -64,18 +83,17 @@ class PostForm
                                     ->columnSpanFull(),
                                 Textarea::make('background')
                                     ->columnSpanFull(),
-                                TextInput::make('season'),
                                 DateTimePicker::make('broadcast'),
                                 Repeater::make('external')
                                     ->label('External Links (JSON)')
                                     ->schema([
                                         TextInput::make('name')
                                             ->label('Name')
-                                            
+
                                             ->maxLength(100),
                                         TextInput::make('url')
                                             ->label('URL')
-                                            
+
                                             ->url()
                                             ->maxLength(255),
                                     ])
@@ -240,7 +258,7 @@ class PostForm
                                         TextInput::make('title')
                                             ->label('🎬 Tiêu đề video')
                                             ->placeholder('VD: Official Trailer, Opening Theme, Episode 1...')
-                                            ->required()
+                                           
                                             ->columnSpanFull()
                                             ->maxLength(255)
                                             ->prefixIcon('heroicon-m-film'),
@@ -250,7 +268,7 @@ class PostForm
                                             ->label('🔗 URL video')
                                             ->url()
                                             ->placeholder('https://www.youtube.com/watch?v=... hoặc URL video khác')
-                                            ->required()
+                                           
                                             ->live(onBlur: true)
                                             ->columnSpanFull()
                                             ->suffixIcon('heroicon-m-link')
@@ -275,7 +293,7 @@ class PostForm
                                                 'other' => '📄 Khác',
                                             ])
                                             ->default('promo')
-                                            ->required()
+                                           
                                             ->native(false)
                                             ->columnSpan(1),
 
@@ -338,8 +356,8 @@ class PostForm
                                 // Genres CheckboxList
                                 CheckboxList::make('genre_ids')
                                     ->label('🎭 Thể loại chung')
-                                    ->options(fn() => Genres::where('type', 'genres')->pluck('name', 'id')->toArray())
-                                    ->descriptions(fn() => Genres::where('type', 'genres')->pluck('description', 'id')->toArray())
+                                    ->options(fn() => Genre::where('type', 'genres')->pluck('name', 'id')->toArray())
+                                    ->descriptions(fn() => Genre::where('type', 'genres')->pluck('description', 'id')->toArray())
                                     ->bulkToggleable()
                                     ->gridDirection('row')
                                     ->columns(3)
@@ -347,7 +365,7 @@ class PostForm
                                     ->afterStateHydrated(function (CheckboxList $component, $state, $record) {
                                         if ($record) {
                                             $genreIds = $record->morphables()
-                                                ->where('morphable_type', Genres::class)
+                                                ->where('morphable_type', Genre::class)
                                                 ->whereHas('morphable', fn($q) => $q->where('type', 'genres'))
                                                 ->pluck('morphable_id')
                                                 ->toArray();
@@ -359,8 +377,8 @@ class PostForm
                                 // Explicit Genres CheckboxList
                                 CheckboxList::make('explicit_genre_ids')
                                     ->label('🔞 Nội dung người lớn')
-                                    ->options(fn() => Genres::where('type', 'explicit_genres')->pluck('name', 'id')->toArray())
-                                    ->descriptions(fn() => Genres::where('type', 'explicit_genres')->pluck('description', 'id')->toArray())
+                                    ->options(fn() => Genre::where('type', 'explicit_genres')->pluck('name', 'id')->toArray())
+                                    ->descriptions(fn() => Genre::where('type', 'explicit_genres')->pluck('description', 'id')->toArray())
                                     ->bulkToggleable()
                                     ->gridDirection('row')
                                     ->columns(3)
@@ -368,7 +386,7 @@ class PostForm
                                     ->afterStateHydrated(function (CheckboxList $component, $state, $record) {
                                         if ($record) {
                                             $genreIds = $record->morphables()
-                                                ->where('morphable_type', Genres::class)
+                                                ->where('morphable_type', Genre::class)
                                                 ->whereHas('morphable', fn($q) => $q->where('type', 'explicit_genres'))
                                                 ->pluck('morphable_id')
                                                 ->toArray();
@@ -380,8 +398,8 @@ class PostForm
                                 // Themes CheckboxList
                                 CheckboxList::make('theme_ids')
                                     ->label('🎨 Chủ đề')
-                                    ->options(fn() => Genres::where('type', 'themes')->pluck('name', 'id')->toArray())
-                                    ->descriptions(fn() => Genres::where('type', 'themes')->pluck('description', 'id')->toArray())
+                                    ->options(fn() => Genre::where('type', 'themes')->pluck('name', 'id')->toArray())
+                                    ->descriptions(fn() => Genre::where('type', 'themes')->pluck('description', 'id')->toArray())
                                     ->bulkToggleable()
                                     ->gridDirection('row')
                                     ->columns(3)
@@ -389,7 +407,7 @@ class PostForm
                                     ->afterStateHydrated(function (CheckboxList $component, $state, $record) {
                                         if ($record) {
                                             $genreIds = $record->morphables()
-                                                ->where('morphable_type', Genres::class)
+                                                ->where('morphable_type', Genre::class)
                                                 ->whereHas('morphable', fn($q) => $q->where('type', 'themes'))
                                                 ->pluck('morphable_id')
                                                 ->toArray();
@@ -401,8 +419,8 @@ class PostForm
                                 // Demographics CheckboxList
                                 CheckboxList::make('demographic_ids')
                                     ->label('👥 Đối tượng')
-                                    ->options(fn() => Genres::where('type', 'demographics')->pluck('name', 'id')->toArray())
-                                    ->descriptions(fn() => Genres::where('type', 'demographics')->pluck('description', 'id')->toArray())
+                                    ->options(fn() => Genre::where('type', 'demographics')->pluck('name', 'id')->toArray())
+                                    ->descriptions(fn() => Genre::where('type', 'demographics')->pluck('description', 'id')->toArray())
                                     ->bulkToggleable()
                                     ->gridDirection('row')
                                     ->columns(3)
@@ -410,7 +428,7 @@ class PostForm
                                     ->afterStateHydrated(function (CheckboxList $component, $state, $record) {
                                         if ($record) {
                                             $genreIds = $record->morphables()
-                                                ->where('morphable_type', Genres::class)
+                                                ->where('morphable_type', Genre::class)
                                                 ->whereHas('morphable', fn($q) => $q->where('type', 'demographics'))
                                                 ->pluck('morphable_id')
                                                 ->toArray();

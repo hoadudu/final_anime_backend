@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 
-use App\Models\Genres;
+use App\Models\Genre;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -14,7 +14,7 @@ class GenreController extends Controller
     {
         $lang = $request->query('lang', 'en'); // Default to 'en'
 
-        $genres = Genres::all()->map(function ($genre) use ($lang) {
+        $genres = Genre::all()->map(function ($genre) use ($lang) {
             $genre->loadCount('posts');
             return [
                 'id' => $genre->id,

@@ -62,7 +62,6 @@ class ImportPost extends Command
                 $this->line("Type: {$post->type}");
                 $this->line("Status: {$post->status}");
                 $this->line("Episodes: {$post->episodes}");
-                $this->line("Score: {$post->score}");
                 $this->newLine();
 
                 // Display titles

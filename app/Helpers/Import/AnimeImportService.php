@@ -7,6 +7,7 @@ use App\Helpers\Import\DataParser;
 use App\Helpers\Import\DatabaseService;
 use App\Models\Post;
 use Illuminate\Support\Facades\Log;
+use App\Helpers\JikanHelper;
 
 /**
  * Main service for importing anime data
@@ -39,10 +40,22 @@ class AnimeImportService
 
             // Fetch data from API
             $animeData = $this->apiClient->getAnime($malId);
+
+            // use pictures change for images
+            $picturesData = (new JikanHelper())->getPictures($malId);
+
+            $animeData['data']['images'] = $picturesData['data'] ?? [];
+
+            // Fetch videos data
+            $videosData = $this->apiClient->getAnimeVideos($malId);
+            $animeData['data']['videos'] = $videosData['data'] ?? [];
+            
             
             // Parse the data
             $parsedData = DataParser::parseAnimeData($animeData);
 
+            
+            
             // Create/update in database
             $post = $this->dbService->createOrUpdateAnime(
                 $parsedData['basic_info'],

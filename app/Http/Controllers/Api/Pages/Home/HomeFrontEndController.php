@@ -96,7 +96,7 @@ class HomeFrontEndController extends Controller
                 'billboardId' => (string) $collectionPost->id, // Add collectionPost ID for reference
                 'mediaType' => $post->type ?? 'TV',
                 'duration' => $post->duration ?? '24m',
-                'releaseDate' => $post->aired_from ? date('M j, Y', strtotime($post->aired_from)) : 'Jul 9, 2025',
+                'releaseDate' => $post->aired_from ? $post->aired_from->format('M j, Y') : 'Jul 9, 2025',
                 'quality' => 'HD',
                 'rating' => '9', // You can calculate this from user ratings if available
                 'showSidePanel' => true,
@@ -140,7 +140,7 @@ class HomeFrontEndController extends Controller
                 'rank' => $index + 1,
                 'slug' => $post->slug ?? '',
                 'description' => strip_tags($post->synopsis ?? ''),
-                'year' => $post->aired_from ?? '',
+                'year' => $post->aired_from ? $post->aired_from->format('Y') : '',
                 'status' => $post->status ?? '',
                 'genres' => $post->genres->pluck('name')->filter()->values()->toArray(),
             ];
@@ -265,6 +265,7 @@ class HomeFrontEndController extends Controller
 
             return [
                 'id' => $post->id,
+                'link' => '/anime/' . $post->slug. '-' . $post->id,
                 'title' => (new PostHelper)->getLocalizedTitle($post, $lang),
                 'titles' => $this->formatTitles($post->titles),
                 'description' => strip_tags($post->synopsis ?? ''),

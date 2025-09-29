@@ -180,7 +180,7 @@ class GenresSeeder extends Seeder
 
         foreach ($genres as $genre) {
             $nameVn = $vietnameseTranslations[$genre['name']] ?? $genre['name'];
-            \App\Models\Genres::where('id', $genre['id'])
+            \App\Models\Genre::where('id', $genre['id'])
                 ->update(['name_vn' => $nameVn]);
         }
     }

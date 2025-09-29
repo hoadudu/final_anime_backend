@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Posts\Pages;
 
-use App\Models\Genres;
+use App\Models\Genre;
 use App\Models\PostMorphable;
 use App\Models\PostProducer;
 use App\Filament\Resources\Posts\PostResource;
@@ -31,7 +31,7 @@ class EditPost extends EditRecord
 
         // Clear existing genre relationships
         PostMorphable::where('post_id', $record->id)
-            ->where('morphable_type', Genres::class)
+            ->where('morphable_type', Genre::class)
             ->delete();
 
         // Handle genre relationships
@@ -59,7 +59,7 @@ class EditPost extends EditRecord
                     PostMorphable::firstOrCreate([
                         'post_id' => $record->id,
                         'morphable_id' => $genreId,
-                        'morphable_type' => Genres::class,
+                        'morphable_type' => Genre::class,
                     ]);
                 }
             }
